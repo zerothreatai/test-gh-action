@@ -32749,6 +32749,7 @@ async function run() {
         }
         const host = deploymentUrl;
         const initiateResponse = await axios_1.default.post(`${apiUrl}/api/scan/initiate`, { host });
+        console.log(initiateResponse.data, initiateResponse);
         const scanData = initiateResponse.data;
         let commentBody = `## Scan initiated\n**Scan ID**: ${scanData.scanId}\n**Status**: ${scanData.status}\n**Last Updated**: ${scanData.lastUpdated}\n`;
         const { data: comment } = await octokit.rest.issues.createComment({
@@ -32764,24 +32765,22 @@ async function run() {
                 body: message
             });
         };
-        const updateStatus = async () => {
+        const interval = setInterval(async () => {
             try {
                 const statusResponse = await axios_1.default.get(`${apiUrl}/api/scan/status?scanId=${scanData.scanId}`);
                 const statusData = statusResponse.data;
-                commentBody = `## Scan Status Update\n**Scan ID**: ${statusData.scanId}\n**Status**: ${statusData.status}\n**Last Updated**: ${statusData.lastUpdated}\n`;
+                commentBody = `## Scan Status Update\n**Scan ID**: ${statusData.scanId}\n**Status**: ${statusData.status}\n**Last Updated**: ${statusData.lastUpdated}`;
                 await updateComment(commentBody);
-                if (statusData.status < 4) {
-                    setTimeout(updateStatus, 10000);
-                }
-                else {
+                if (statusData.status >= 4) {
+                    clearInterval(interval);
                     core.info('Scan completed.');
                 }
             }
             catch (error) {
+                clearInterval(interval);
                 core.setFailed(`Failed to update status: ${error}`);
             }
-        };
-        setTimeout(updateStatus, 10000);
+        }, 10000);
     }
     catch (error) {
         core.setFailed(`Action failed: ${error}`);
