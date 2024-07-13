@@ -5,7 +5,7 @@ import axios from 'axios';
 async function run() {
     try {
         const deploymentUrl = core.getInput('deployment_url');
-        const apiUrl = "https://test-apirepo-action.vercel.app/";  // Test API for scan
+        const apiUrl = "https://test-apirepo-action.vercel.app";  // Test API for scan
         const token = core.getInput('github_token');
         const context = github.context;
         const octokit = github.getOctokit(token);
