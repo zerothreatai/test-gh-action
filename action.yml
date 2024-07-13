@@ -3,7 +3,7 @@ description: "This is a test github action to test api with web application depl
 author: "jeel Gajera"
 
 inputs:
-  deploymet_url:
+  deployment_url:
     description: 'Web Application Deployment URL'
     required: true
   github_token:
