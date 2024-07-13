@@ -4,28 +4,38 @@ import axios from 'axios';
 
 async function run() {
     try {
-        const deploymentUrl = core.getInput('deployment_url');
-        const apiUrl = "https://test-apirepo-action.vercel.app/"  // test api for scan
+        const deploymentUrl = core.getInput('deploymet_url');
+        const apiUrl = "https://test-apirepo-action.vercel.app/";  // Test API for scan
         const token = core.getInput('github_token');
         const context = github.context;
+        const octokit = github.getOctokit(token);
 
-        if (!context.payload.pull_request) {
-            core.setFailed('This action can only be run on pull requests.');
+        let prNumber: number | undefined;
+
+        if (context.payload.pull_request) {
+            prNumber = context.payload.pull_request.number;
+        } else if (context.payload.commits) {
+            const { data: pullRequests } = await octokit.rest.pulls.list({
+                ...context.repo,
+                state: 'open'
+            });
+            const matchingPR = pullRequests.find(pr => pr.head.ref === context.ref.replace('refs/heads/', ''));
+            if (matchingPR) {
+                prNumber = matchingPR.number;
+            }
+        }
+
+        if (!prNumber) {
+            core.info('No pull request found for this action.');
             return;
         }
 
-        const { number: prNumber } = context.payload.pull_request;
-        const octokit = github.getOctokit(token);
         const host = deploymentUrl;
 
         const initiateResponse = await axios.post(`${apiUrl}/api/scan/initiate`, { host });
         const scanData = initiateResponse.data;
 
-        let commentBody = `## Scan initiated
-                            **Scan ID**: ${scanData.scanId}
-                            **Status**: ${scanData.status}
-                            **Last Updated**: ${scanData.lastUpdated}
-                            `;
+        let commentBody = `## Scan initiated\n**Scan ID**: ${scanData.scanId}\n**Status**: ${scanData.status}\n**Last Updated**: ${scanData.lastUpdated}\n`;
 
         const { data: comment } = await octokit.rest.issues.createComment({
             ...context.repo,
@@ -48,18 +58,14 @@ async function run() {
                 const statusResponse = await axios.get(`${apiUrl}/api/scan/status?scanId=${scanData.scanId}`);
                 const statusData = statusResponse.data;
 
-                commentBody = `## Scan Status Update
-                        **Scan ID**: ${statusData.scanId}
-                        **Status**: ${statusData.status}
-                        **Last Updated**: ${statusData.lastUpdated}
-                        `;
+                commentBody = `## Scan Status Update\n**Scan ID**: ${statusData.scanId}\n**Status**: ${statusData.status}\n**Last Updated**: ${statusData.lastUpdated}\n`;
 
                 await updateComment(commentBody);
 
                 if (statusData.status < 4) {
                     setTimeout(updateStatus, 10000);
                 } else {
-                    core.info('✅ Scan completed.');
+                    core.info('Scan completed.');
                 }
             } catch (error) {
                 core.setFailed(`Failed to update status: ${error}`);
