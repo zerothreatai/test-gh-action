@@ -33,8 +33,7 @@ async function run() {
         const host = deploymentUrl;
 
         const initiateResponse = await axios.post(`${apiUrl}/api/scan/initiate`, { host });
-        console.log(initiateResponse.data, initiateResponse);
-        const scanData = initiateResponse.data;
+        const scanData = initiateResponse.data.scanData;
 
         let commentBody = `## Scan initiated\n**Scan ID**: ${scanData.scanId}\n**Status**: ${scanData.status}\n**Last Updated**: ${scanData.lastUpdated}\n`;
 
