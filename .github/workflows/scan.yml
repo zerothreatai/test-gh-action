@@ -1,0 +1,18 @@
+name: "Vulnerability Scan on Deployment with GitHub ACTION"
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Vulnerability Scan Action
+        uses: ./
+        with:
+          deployment_url: ${{ steps.deploy.outputs.deployment_url }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

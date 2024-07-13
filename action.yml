@@ -1,0 +1,18 @@
+name: "Test Api GH Action"
+description: "This is a test github action to test api with web application deployment"
+author: "jeel Gajera"
+
+inputs:
+  deploymet_url:
+    description: 'Web Application Deployment URL'
+    required: true
+  github_token:
+    description: 'GitHub token to authenticate API requests'
+    required: true
+
+outputs:
+  vulnerability:
+    description: 'Detected Vulnerability for the application'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
