@@ -1,6 +1,6 @@
 name: "Test Api GH Action"
 description: "This is a test github action to test api with web application deployment"
-author: "jeel Gajera"
+author: "ZeroThreatAI"
 
 inputs:
   deployment_url:
@@ -13,6 +13,7 @@ inputs:
 outputs:
   vulnerability:
     description: 'Detected Vulnerability for the application'
+    value: ${{ steps.scan.outputs.vulnerability }}
 runs:
   using: 'node20'
   main: 'dist/index.js'
